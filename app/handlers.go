@@ -24,7 +24,6 @@ func getEchoHandler(request HttpRequest) HttpResponse {
 		Status: OkStatus,
 		Headers: map[string]string{
 			"Content-Type":   "text/plain",
-			"Content-Length": strconv.Itoa(len(echo)),
 		},
 		Body: []byte(echo),
 	}
@@ -35,7 +34,6 @@ func getUserAgentHandler(request HttpRequest) HttpResponse {
 		Status: OkStatus,
 		Headers: map[string]string{
 			"Content-Type":   "text/plain",
-			"Content-Length": strconv.Itoa(len(request.Headers["User-Agent"])),
 		},
 		Body: []byte(request.Headers["User-Agent"]),
 	}
@@ -54,7 +52,6 @@ func getFilesHandler(request HttpRequest) HttpResponse {
 			Status: OkStatus,
 			Headers: map[string]string{
 				"Content-Type":   "application/octet-stream",
-				"Content-Length": strconv.Itoa(len(body)),
 			},
 			Body: body,
 		}

@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"regexp"
+	"strconv"
 )
 
 type RequestHandler func(HttpRequest) HttpResponse
@@ -85,6 +86,10 @@ func handleConnection(conn net.Conn) {
 	}
 
 	resp := requestHandler(httpReq)
+
+	if len(resp.Body) > 0 {
+		resp.Headers["Content-Length"] = strconv.Itoa(len(resp.Body))
+	}
 
 	_, err := conn.Write(resp.toBytes())
 	if err != nil {
