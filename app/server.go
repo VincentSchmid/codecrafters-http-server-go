@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
 	"fmt"
 	"net"
 	"os"
@@ -88,12 +90,30 @@ func handleConnection(conn net.Conn) {
 
 	resp := requestHandler(httpReq)
 
-	if len(resp.Body) > 0 {
-		resp.Headers["Content-Length"] = strconv.Itoa(len(resp.Body))
+	if strings.Contains(httpReq.Headers["Accept-Encoding"], "gzip") {
+		var buffer bytes.Buffer
+		gz := gzip.NewWriter(&buffer)
+
+		_, err := gz.Write(resp.Body)
+		if err != nil {
+			gz.Close()
+			resp = HttpResponse{
+				Status: InternalServerErrorStatus,
+			}
+		}
+
+		if err := gz.Close(); err != nil {
+			resp = HttpResponse{
+				Status: InternalServerErrorStatus,
+			}
+		}
+
+		resp.Body = buffer.Bytes()
+		resp.Headers["Content-Encoding"] = "gzip"
 	}
 
-	if strings.Contains(httpReq.Headers["Accept-Encoding"], "gzip") {
-		resp.Headers["Content-Encoding"] = "gzip"
+	if len(resp.Body) > 0 {
+		resp.Headers["Content-Length"] = strconv.Itoa(len(resp.Body))
 	}
 
 	_, err := conn.Write(resp.toBytes())
