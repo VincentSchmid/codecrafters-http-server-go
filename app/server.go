@@ -11,21 +11,30 @@ type RequestHandler func(HttpRequest) HttpResponse
 
 const (
 	httpVersion = "HTTP/1.1"
+	maxRequestSizeBytes = 1024
 )
 
 var (
 	echoPath, _ = regexp.Compile("/echo/*")
 	planePath, _ = regexp.Compile("/$")
 	userAgentPath, _ = regexp.Compile("/user-agent$")
+	filesPath, _ = regexp.Compile("/files/*")
 
 	handlers = map[*regexp.Regexp]RequestHandler{
 		echoPath:  echoHandler,
 		planePath: okResponse,
 		userAgentPath: userAgentHandler,
+		filesPath: filesHandler,
 	}
+
+	filesDir = "assets"
 )
 
 func main() {
+	if len(os.Args) >= 3 && os.Args[1] == "--directory" {
+		filesDir = os.Args[2]
+	}
+	
 	l, err := net.Listen("tcp", "0.0.0.0:4221")
 	if err != nil {
 		fmt.Println("Failed to bind to port 4221")
@@ -48,7 +57,7 @@ func main() {
 
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
-	req := make([]byte, 1024)
+	req := make([]byte, maxRequestSizeBytes)
 	conn.Read(req)
 	httpReq := NewHttpRequest(req)
 

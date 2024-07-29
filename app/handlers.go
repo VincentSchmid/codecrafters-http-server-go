@@ -48,3 +48,25 @@ func userAgentHandler(request HttpRequest) HttpResponse {
 		Body: []byte(request.Headers["User-Agent"]),
 	}
 }
+
+func filesHandler(request HttpRequest) HttpResponse {
+	filePath := strings.Split(request.RequestTarget, "/files/")[1]
+
+	httpResponse := notFoundResponse(request)
+
+	body, err := GetFileContent(filePath)
+	if err == nil {
+		httpResponse = HttpResponse{
+			HttpVersion: httpVersion,
+			StatusCode: "200",
+			StatusMessage: "OK",
+			Headers: map[string]string{
+				"Content-Type": "application/octet-stream",
+				"Content-Length": strconv.Itoa(len(body)),
+			},
+			Body: body,
+		}
+	} 
+
+	return httpResponse
+}
