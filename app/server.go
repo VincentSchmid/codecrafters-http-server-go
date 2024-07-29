@@ -6,6 +6,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 type RequestHandler func(HttpRequest) HttpResponse
@@ -91,7 +92,7 @@ func handleConnection(conn net.Conn) {
 		resp.Headers["Content-Length"] = strconv.Itoa(len(resp.Body))
 	}
 
-	if httpReq.Headers["Accept-Encoding"] == "gzip" {
+	if strings.Contains(httpReq.Headers["Accept-Encoding"], "gzip") {
 		resp.Headers["Content-Encoding"] = "gzip"
 	}
 
