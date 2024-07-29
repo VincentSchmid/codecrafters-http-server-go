@@ -16,10 +16,12 @@ const (
 var (
 	echoPath, _ = regexp.Compile("/echo/*")
 	planePath, _ = regexp.Compile("/$")
+	userAgentPath, _ = regexp.Compile("/user-agent$")
 
 	handlers = map[*regexp.Regexp]RequestHandler{
 		echoPath:  echoHandler,
 		planePath: okResponse,
+		userAgentPath: userAgentHandler,
 	}
 )
 

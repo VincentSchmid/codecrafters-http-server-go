@@ -11,7 +11,7 @@ func TestHttpRequest_toBytes(t *testing.T) {
 		Method:        "GET",
 		RequestTarget: "/",
 		HttpVersion:   "HTTP/1.1",
-		Headers:       []string{"Host: example.com", "Connection: keep-alive"},
+		Headers:       map[string]string{"Host": "example.com", "Connection": "keep-alive"},
 		Body:          []byte("Test body"),
 	}
 	expected := []byte("GET / HTTP/1.1\r\nHost: example.com\r\nConnection: keep-alive\r\n\r\nTest body")
@@ -25,7 +25,7 @@ func TestHttpResponse_toBytes(t *testing.T) {
 		HttpVersion:   "HTTP/1.1",
 		StatusCode:    "200",
 		StatusMessage: "OK",
-		Headers:       []string{"Content-Type: text/html", "Content-Length: 12"},
+		Headers:       map[string]string{"Content-Type": "text/html", "Content-Length": "12"},
 		Body:          []byte("Hello World!"),
 	}
 	expected := []byte("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 12\r\n\r\nHello World!")
@@ -40,7 +40,7 @@ func TestNewHttpRequest(t *testing.T) {
 		Method:        "POST",
 		RequestTarget: "/submit",
 		HttpVersion:   "HTTP/1.1",
-		Headers:       []string{"Host: example.com", "Content-Type: application/x-www-form-urlencoded"},
+		Headers:       map[string]string{"Host": "example.com", "Content-Type": "application/x-www-form-urlencoded"},
 		Body:          []byte("name=John"),
 	}
 	result := NewHttpRequest(request)
