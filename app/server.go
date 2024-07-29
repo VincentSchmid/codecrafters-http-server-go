@@ -10,21 +10,20 @@ import (
 type RequestHandler func(HttpRequest) HttpResponse
 
 const (
-	httpVersion = "HTTP/1.1"
 	maxRequestSizeBytes = 1024
 )
 
 var (
-	echoPath, _ = regexp.Compile("/echo/*")
-	planePath, _ = regexp.Compile("/$")
+	echoPath, _      = regexp.Compile("/echo/*")
+	planePath, _     = regexp.Compile("/$")
 	userAgentPath, _ = regexp.Compile("/user-agent$")
-	filesPath, _ = regexp.Compile("/files/*")
+	filesPath, _     = regexp.Compile("/files/*")
 
 	getHandlers = map[*regexp.Regexp]RequestHandler{
-		echoPath:  getEchoHandler,
-		planePath: okResponse,
+		echoPath:      getEchoHandler,
+		planePath:     okResponse,
 		userAgentPath: getUserAgentHandler,
-		filesPath: getFilesHandler,
+		filesPath:     getFilesHandler,
 	}
 
 	postHandlers = map[*regexp.Regexp]RequestHandler{
@@ -38,7 +37,7 @@ func main() {
 	if len(os.Args) >= 3 && os.Args[1] == "--directory" {
 		filesDir = os.Args[2]
 	}
-	
+
 	l, err := net.Listen("tcp", "0.0.0.0:4221")
 	if err != nil {
 		fmt.Println("Failed to bind to port 4221")
@@ -69,7 +68,7 @@ func handleConnection(conn net.Conn) {
 
 	if httpReq.Method == "GET" {
 		for validTargetRegex, handler := range getHandlers {
-			if validTargetRegex.MatchString(httpReq.RequestTarget)  {
+			if validTargetRegex.MatchString(httpReq.RequestTarget) {
 				requestHandler = handler
 				break
 			}
@@ -78,7 +77,7 @@ func handleConnection(conn net.Conn) {
 
 	if httpReq.Method == "POST" {
 		for validTargetRegex, handler := range postHandlers {
-			if validTargetRegex.MatchString(httpReq.RequestTarget)  {
+			if validTargetRegex.MatchString(httpReq.RequestTarget) {
 				requestHandler = handler
 				break
 			}

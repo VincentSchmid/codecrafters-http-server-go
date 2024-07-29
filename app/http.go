@@ -6,10 +6,41 @@ import (
 	"strings"
 )
 
+const (
+	HttpVersion = "HTTP/1.1"
+)
+
+type HttpStatus struct {
+	StatusCode    string
+	StatusMessage string
+}
+
+var (
+	OkStatus = HttpStatus{
+		StatusCode:    "200",
+		StatusMessage: "OK",
+	}
+	CreatedStatus = HttpStatus{
+		StatusCode:    "201",
+		StatusMessage: "Created",
+	}
+	NotFoundStatus = HttpStatus{
+		StatusCode:    "404",
+		StatusMessage: "Not Found",
+	}
+	BadRequestStatus = HttpStatus{
+		StatusCode:    "400",
+		StatusMessage: "Bad Request",
+	}
+	InternalServerErrorStatus = HttpStatus{
+		StatusCode:    "500",
+		StatusMessage: "Internal Server Error",
+	}
+)
+
 type HttpRequest struct {
 	Method        string
 	RequestTarget string
-	HttpVersion   string
 	Headers       map[string]string
 	Body          []byte
 }
@@ -28,7 +59,6 @@ func NewHttpRequest(request []byte) HttpRequest {
 	return HttpRequest{
 		Method:        startLine[0],
 		RequestTarget: startLine[1],
-		HttpVersion:   startLine[2],
 		Headers:       headers,
 		Body:          tmpReq[1],
 	}
@@ -36,7 +66,7 @@ func NewHttpRequest(request []byte) HttpRequest {
 
 func (hr HttpRequest) toBytes() []byte {
 	var buffer bytes.Buffer
-	buffer.WriteString(fmt.Sprintf("%s %s %s\r\n", hr.Method, hr.RequestTarget, hr.HttpVersion))
+	buffer.WriteString(fmt.Sprintf("%s %s %s\r\n", hr.Method, hr.RequestTarget, HttpVersion))
 
 	for key, value := range hr.Headers {
 		buffer.WriteString(fmt.Sprintf("%s: %s\r\n", key, value))
@@ -49,16 +79,14 @@ func (hr HttpRequest) toBytes() []byte {
 }
 
 type HttpResponse struct {
-	HttpVersion   string
-	StatusCode    string
-	StatusMessage string
-	Headers       map[string]string
-	Body          []byte
+	Status  HttpStatus
+	Headers map[string]string
+	Body    []byte
 }
 
 func (hr HttpResponse) toBytes() []byte {
 	var buffer bytes.Buffer
-	buffer.WriteString(fmt.Sprintf("%s %s %s\r\n", hr.HttpVersion, hr.StatusCode, hr.StatusMessage))
+	buffer.WriteString(fmt.Sprintf("%s %s %s\r\n", HttpVersion, hr.Status.StatusCode, hr.Status.StatusMessage))
 
 	for key, value := range hr.Headers {
 		buffer.WriteString(fmt.Sprintf("%s: %s\r\n", key, value))

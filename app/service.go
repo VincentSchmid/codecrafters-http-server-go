@@ -10,7 +10,7 @@ type FileNotFoundError error
 type InternalServerError error
 
 var (
-	ErrFileNotFound FileNotFoundError = errors.New("file not found")
+	ErrFileNotFound        FileNotFoundError   = errors.New("file not found")
 	ErrInternalServerError InternalServerError = errors.New("internal server error")
 )
 
@@ -33,8 +33,8 @@ func writeFile(filename string, data []byte, contentLength int) error {
 	actualPath := filesDir + "/" + filename
 
 	err := os.WriteFile(actualPath, data[:contentLength], 0644)
-    if err != nil {
-        return ErrInternalServerError
-    }
-    return nil
+	if err != nil {
+		return ErrInternalServerError
+	}
+	return nil
 }
