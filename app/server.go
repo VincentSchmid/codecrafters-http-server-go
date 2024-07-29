@@ -91,6 +91,10 @@ func handleConnection(conn net.Conn) {
 		resp.Headers["Content-Length"] = strconv.Itoa(len(resp.Body))
 	}
 
+	if httpReq.Headers["Accept-Encoding"] == "gzip" {
+		resp.Headers["Content-Encoding"] = "gzip"
+	}
+
 	_, err := conn.Write(resp.toBytes())
 	if err != nil {
 		fmt.Println("error writing to connection:", err.Error())
