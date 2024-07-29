@@ -1,3 +1,4 @@
 justfile
 **/launch.json
 bin/*
+__**

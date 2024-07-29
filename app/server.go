@@ -4,45 +4,33 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"strings"
-	"bytes"
+	"regexp"
+)
+
+type RequestHandler func(HttpRequest) HttpResponse
+
+const (
+	httpVersion = "HTTP/1.1"
 )
 
 var (
-	availablePaths = [...]string{"/", "/index.html"}
+	echoPath, _ = regexp.Compile("/echo/*")
+	planePath, _ = regexp.Compile("/$")
+
+	handlers = map[*regexp.Regexp]RequestHandler{
+		echoPath:  echoHandler,
+		planePath: okResponse,
+	}
 )
 
-type HttpRequest struct {
-	Method string
-	RequestTarget string
-	HttpVersion string
-	Headers []string
-	MessageBody []byte
-}
-
-func NewHttpRequest(request []byte) HttpRequest {
-	tmpReq := bytes.Split(request, []byte("\r\n\r\n"))
-	metaData := strings.Split(string(tmpReq[0]), "\r\n")
-	startLine := strings.Split(metaData[0], " ")
-
-	return HttpRequest{
-		Method: startLine[0],
-		RequestTarget: startLine[1],
-		HttpVersion: startLine[2],
-		Headers: metaData[1:],
-		MessageBody: tmpReq[1],
-	}
-}
-
 func main() {
-	// You can use print statements as follows for debugging, they'll be visible when running tests.
-	fmt.Println("Logs from your program will appear here!")
-
 	l, err := net.Listen("tcp", "0.0.0.0:4221")
 	if err != nil {
 		fmt.Println("Failed to bind to port 4221")
 		os.Exit(1)
 	}
+
+	fmt.Printf("server listening on port 4221")
 
 	defer l.Close()
 
@@ -62,24 +50,19 @@ func handleConnection(conn net.Conn) {
 	conn.Read(req)
 	httpReq := NewHttpRequest(req)
 
-	if validRequestTarget(httpReq.RequestTarget) {
-		_, err := conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
-		if err != nil {
-			fmt.Println("error writing to connection:", err.Error())
-		}
-	} else {
-		_, err := conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
-		if err != nil {
-			fmt.Println("error writing to connection:", err.Error())
+	requestHandler := notFoundResponse
+
+	for validTargetRegex, handler := range handlers {
+		if validTargetRegex.MatchString(httpReq.RequestTarget)  {
+			requestHandler = handler
+			break
 		}
 	}
-}
 
-func validRequestTarget(requestTarget string) bool {
-	for _, validTarget := range availablePaths {
-        if validTarget == requestTarget {
-            return true
-        }
-    }
-    return false
+	resp := requestHandler(httpReq)
+
+	_, err := conn.Write(resp.toBytes())
+	if err != nil {
+		fmt.Println("error writing to connection:", err.Error())
+	}
 }
