@@ -21,7 +21,7 @@ func notFoundResponse(_ HttpRequest) HttpResponse {
 	}
 }
 
-func echoHandler(request HttpRequest) HttpResponse {
+func getEchoHandler(request HttpRequest) HttpResponse {
 	echo := strings.Split(request.RequestTarget, "/echo/")[1]
 
 	return HttpResponse{
@@ -36,7 +36,7 @@ func echoHandler(request HttpRequest) HttpResponse {
 	}
 }
 
-func userAgentHandler(request HttpRequest) HttpResponse {
+func getUserAgentHandler(request HttpRequest) HttpResponse {
 	return HttpResponse{
 		HttpVersion: httpVersion,
 		StatusCode: "200",
@@ -49,7 +49,7 @@ func userAgentHandler(request HttpRequest) HttpResponse {
 	}
 }
 
-func filesHandler(request HttpRequest) HttpResponse {
+func getFilesHandler(request HttpRequest) HttpResponse {
 	filePath := strings.Split(request.RequestTarget, "/files/")[1]
 
 	httpResponse := notFoundResponse(request)
@@ -70,3 +70,32 @@ func filesHandler(request HttpRequest) HttpResponse {
 
 	return httpResponse
 }
+
+func postFilesHandler(request HttpRequest) HttpResponse {
+	filePath := strings.Split(request.RequestTarget, "/files/")[1]
+
+	contentSize, err := strconv.Atoi(request.Headers["Content-Length"])
+	if err != nil {
+		return HttpResponse{
+			HttpVersion: httpVersion,
+			StatusCode: "400",
+			StatusMessage: "Bad Request",
+		}
+	}
+
+	err = writeFile(filePath, request.Body, contentSize)
+	if err != nil {
+		return HttpResponse{
+			HttpVersion: httpVersion,
+			StatusCode: "500",
+			StatusMessage: "Internal Server Error",
+		}
+	} 
+
+	return HttpResponse{
+		HttpVersion: httpVersion,
+		StatusCode: "201",
+		StatusMessage: "Created",
+	}
+}
+

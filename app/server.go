@@ -20,11 +20,15 @@ var (
 	userAgentPath, _ = regexp.Compile("/user-agent$")
 	filesPath, _ = regexp.Compile("/files/*")
 
-	handlers = map[*regexp.Regexp]RequestHandler{
-		echoPath:  echoHandler,
+	getHandlers = map[*regexp.Regexp]RequestHandler{
+		echoPath:  getEchoHandler,
 		planePath: okResponse,
-		userAgentPath: userAgentHandler,
-		filesPath: filesHandler,
+		userAgentPath: getUserAgentHandler,
+		filesPath: getFilesHandler,
+	}
+
+	postHandlers = map[*regexp.Regexp]RequestHandler{
+		filesPath: postFilesHandler,
 	}
 
 	filesDir = "assets"
@@ -63,10 +67,21 @@ func handleConnection(conn net.Conn) {
 
 	requestHandler := notFoundResponse
 
-	for validTargetRegex, handler := range handlers {
-		if validTargetRegex.MatchString(httpReq.RequestTarget)  {
-			requestHandler = handler
-			break
+	if httpReq.Method == "GET" {
+		for validTargetRegex, handler := range getHandlers {
+			if validTargetRegex.MatchString(httpReq.RequestTarget)  {
+				requestHandler = handler
+				break
+			}
+		}
+	}
+
+	if httpReq.Method == "POST" {
+		for validTargetRegex, handler := range postHandlers {
+			if validTargetRegex.MatchString(httpReq.RequestTarget)  {
+				requestHandler = handler
+				break
+			}
 		}
 	}
 
